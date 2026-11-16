@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thanksgiving Facts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #FAF3E8;
+      color: #4A200C;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    body {
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    /* Seamless 3-Column Zero-Scroll Workspace */
+    .workspace-grid {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      max-width: 1520px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(225px, 295px) 1fr minmax(225px, 295px);
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0 1rem 0.75rem;
+      transition: grid-template-columns 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .workspace-grid.completed-mode {
+      grid-template-columns: 0px 1fr 0px;
+      gap: 0;
+    }
+
+    /* Left & Right Seamless Feather Banks with Explicit Non-Zero Sizing */
+    .side-bank {
+      width: 100%;
+      height: 100%;
+      min-height: 440px;
+      max-height: calc(100dvh - 76px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .workspace-grid.completed-mode .side-bank {
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .feather-slot-placeholder {
+      flex: 1 1 0%;
+      width: 100%;
+      min-height: 56px;
+      max-height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Center Turkey Stage */
+    .turkey-center-col {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .turkey-stage {
+      position: relative;
+      width: min(100%, 780px);
+      height: min(100%, 640px);
+      min-height: 440px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1), height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .turkey-stage.completed-showcase {
+      width: min(96vw, 940px);
+      height: min(calc(100dvh - 82px), 710px);
+    }
+
+    /* Turkey Body Container */
+    .turkey-body-wrap {
+      position: relative;
+      z-index: 25;
+      width: 27%;
+      min-width: 140px;
+      max-width: 205px;
+      bottom: 2%;
+      pointer-events: none;
+      filter: drop-shadow(0 10px 16px rgba(74, 32, 12, 0.2));
+    }
+
+    .turkey-body-wrap svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* 8 Feather-Shaped Placement Guides Fanning Behind Turkey */
+    .tail-slot {
+      position: absolute;
+      bottom: 25%;
+      left: 50%;
+      width: 14.5%;
+      min-width: 74px;
+      max-width: 112px;
+      height: 43%;
+      min-height: 168px;
+      max-height: 252px;
+      transform-origin: 50% 96%;
+      border-radius: 52% 52% 28% 28% / 64% 64% 18% 18%;
+      border: 2.5px dashed rgba(217, 119, 6, 0.45);
+      background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.14) 0%, rgba(250, 243, 232, 0.01) 78%);
+      transition: border-color 0.22s ease, background 0.22s ease, filter 0.22s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tail-slot::before {
+      content: '';
+      position: absolute;
+      bottom: 8%;
+      left: 50%;
+      width: 2px;
+      height: 58%;
+      transform: translateX(-50%);
+      border-left: 2px dashed rgba(180, 83, 9, 0.26);
+      pointer-events: none;
+    }
+
+    .tail-slot:hover:not(.occupied),
+    .tail-slot.drag-over:not(.occupied) {
+      border-color: #D97706;
+      background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.34) 0%, rgba(245, 158, 11, 0.12) 80%);
+      filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.45));
+    }
+
+    .tail-slot.occupied {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .tail-slot.occupied::before {
+      display: none;
+    }
+
+    /* Placed Feather Graphic & Non-Overlapping Radial Checkmark + Outer Label */
+    .placed-feather-wrap {
+      position: relative;
+      width: 112%;
+      height: 104%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      animation: featherSnap 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .placed-feather-wrap svg.feather-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 5px 9px rgba(74, 32, 12, 0.22));
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    .tail-slot.locked .placed-feather-wrap svg.feather-art {
+      filter: drop-shadow(0 0 10px rgba(22, 163, 74, 0.58)) drop-shadow(0 4px 8px rgba(74, 32, 12, 0.2));
+    }
+
+    /* Checkmark Positioned Cleanly Beyond the Outer Tip of the Feather */
+    .verified-icon {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 16;
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      background: #16A34A;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(20, 83, 45, 0.42);
+      border: 2px solid #FAF3E8;
+      pointer-events: none;
+    }
+
+    /* Statement Label Pushed Radially Outward Beyond the Checkmark (Zero Overlap) */
+    .placed-feather-text {
+      position: absolute;
+      bottom: calc(100% + 24px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 14;
+      width: 118px;
+      text-align: center;
+      font-size: clamp(0.58rem, 0.82vw, 0.72rem);
+      line-height: 1.12;
+      font-weight: 900;
+      color: #4A200C;
+      text-shadow:
+        0 0 4px #FAF3E8,
+        0 0 8px #FAF3E8,
+        1px 1px 0 #FAF3E8,
+        -1px -1px 0 #FAF3E8,
+        1px -1px 0 #FAF3E8,
+        -1px 1px 0 #FAF3E8;
+      word-wrap: break-word;
+      pointer-events: none;
+    }
+
+    /* Wrong Lie Feather Shake & Red Highlight */
+    @keyframes lieShake {
+      0%, 100% { transform: translate(-50%, 0) rotate(var(--slot-angle)); }
+      20% { transform: translate(-57%, -4px) rotate(calc(var(--slot-angle) - 7deg)); }
+      40% { transform: translate(-43%, -4px) rotate(calc(var(--slot-angle) + 7deg)); }
+      60% { transform: translate(-55%, -2px) rotate(calc(var(--slot-angle) - 5deg)); }
+      80% { transform: translate(-45%, -2px) rotate(calc(var(--slot-angle) + 5deg)); }
+    }
+
+    .tail-slot.wrong-shake {
+      animation: lieShake 0.55s ease-in-out;
+    }
+
+    .tail-slot.wrong-shake .placed-feather-wrap svg.feather-art {
+      filter: drop-shadow(0 0 14px rgba(220, 38, 38, 0.92)) sepia(0.35) hue-rotate(-30deg) saturate(1.8);
+    }
+
+    @keyframes featherSnap {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Individual Draggable/Tappable Horizontal Feather Card in Left/Right Banks */
+    .feather-item {
+      position: relative;
+      width: 100%;
+      max-width: 278px;
+      height: 100%;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease, opacity 0.2s ease;
+    }
+
+    .feather-item:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 6px 12px rgba(146, 64, 14, 0.25));
+      z-index: 30;
+    }
+
+    .feather-item:active {
+      cursor: grabbing;
+      transform: scale(0.97);
+    }
+
+    .feather-item.dragging {
+      opacity: 0.35;
+    }
+
+    /* Floating Pointer Drag Clone for Mouse, Touch, and Smartboards */
+    .feather-drag-ghost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translate(-50%, -50%) scale(1.08) rotate(-4deg);
+      filter: drop-shadow(0 12px 20px rgba(74, 32, 12, 0.35));
+      transition: transform 0.08s ease-out;
+    }
+
+    /* Center Turkey Stage */
+    .turkey-center-col {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .turkey-stage {
+      position: relative;
+      width: min(100%, 760px);
+      height: min(100%, 620px);
+      min-height: 430px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1), height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .turkey-stage.completed-showcase {
+      width: min(96vw, 900px);
+      height: min(calc(100dvh - 82px), 700px);
+    }
+
+    /* Turkey Body Container */
+    .turkey-body-wrap {
+      position: relative;
+      z-index: 25;
+      width: 28%;
+      min-width: 145px;
+      max-width: 215px;
+      bottom: 2.5%;
+      pointer-events: none;
+      filter: drop-shadow(0 10px 16px rgba(74, 32, 12, 0.2));
+    }
+
+    .turkey-body-wrap svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Feather-Shaped Placement Guides Fanning Behind Turkey */
+    .tail-slot {
+      position: absolute;
+      bottom: 26%;
+      left: 50%;
+      width: 16%;
+      min-width: 82px;
+      max-width: 122px;
+      height: 44%;
+      min-height: 175px;
+      max-height: 260px;
+      transform-origin: 50% 96%;
+      border-radius: 52% 52% 28% 28% / 64% 64% 18% 18%;
+      border: 2.5px dashed rgba(217, 119, 6, 0.45);
+      background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.14) 0%, rgba(250, 243, 232, 0.01) 78%);
+      transition: border-color 0.22s ease, background 0.22s ease, filter 0.22s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tail-slot::before {
+      content: '';
+      position: absolute;
+      bottom: 8%;
+      left: 50%;
+      width: 2px;
+      height: 58%;
+      transform: translateX(-50%);
+      border-left: 2px dashed rgba(180, 83, 9, 0.26);
+      pointer-events: none;
+    }
+
+    .tail-slot:hover:not(.occupied),
+    .tail-slot.drag-over:not(.occupied) {
+      border-color: #D97706;
+      background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.34) 0%, rgba(245, 158, 11, 0.12) 80%);
+      filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.45));
+    }
+
+    .tail-slot.occupied {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .tail-slot.occupied::before {
+      display: none;
+    }
+
+    /* Placed Feather Graphic & Non-Overlapping Radial Checkmark + Outer Label */
+    .placed-feather-wrap {
+      position: relative;
+      width: 112%;
+      height: 104%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      animation: featherSnap 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .placed-feather-wrap svg.feather-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 5px 9px rgba(74, 32, 12, 0.22));
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    .tail-slot.locked .placed-feather-wrap svg.feather-art {
+      filter: drop-shadow(0 0 10px rgba(22, 163, 74, 0.58)) drop-shadow(0 4px 8px rgba(74, 32, 12, 0.2));
+    }
+
+    /* Checkmark Positioned Cleanly Beyond the Outer Tip of the Feather */
+    .verified-icon {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 16;
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background: #16A34A;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(20, 83, 45, 0.42);
+      border: 2px solid #FAF3E8;
+      pointer-events: none;
+    }
+
+    /* Statement Label Pushed Radially Outward Beyond the Checkmark (Zero Overlap) */
+    .placed-feather-text {
+      position: absolute;
+      bottom: calc(100% + 26px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 14;
+      width: 126px;
+      text-align: center;
+      font-size: clamp(0.62rem, 0.88vw, 0.76rem);
+      line-height: 1.13;
+      font-weight: 900;
+      color: #4A200C;
+      text-shadow:
+        0 0 4px #FAF3E8,
+        0 0 8px #FAF3E8,
+        1px 1px 0 #FAF3E8,
+        -1px -1px 0 #FAF3E8,
+        1px -1px 0 #FAF3E8,
+        -1px 1px 0 #FAF3E8;
+      word-wrap: break-word;
+      pointer-events: none;
+    }
+
+    /* Wrong Lie Feather Shake & Red Highlight */
+    @keyframes lieShake {
+      0%, 100% { transform: translate(-50%, 0) rotate(var(--slot-angle)); }
+      20% { transform: translate(-57%, -4px) rotate(calc(var(--slot-angle) - 7deg)); }
+      40% { transform: translate(-43%, -4px) rotate(calc(var(--slot-angle) + 7deg)); }
+      60% { transform: translate(-55%, -2px) rotate(calc(var(--slot-angle) - 5deg)); }
+      80% { transform: translate(-45%, -2px) rotate(calc(var(--slot-angle) + 5deg)); }
+    }
+
+    .tail-slot.wrong-shake {
+      animation: lieShake 0.55s ease-in-out;
+    }
+
+    .tail-slot.wrong-shake .placed-feather-wrap svg.feather-art {
+      filter: drop-shadow(0 0 14px rgba(220, 38, 38, 0.92)) sepia(0.35) hue-rotate(-30deg) saturate(1.8);
+    }
+
+    @keyframes featherSnap {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Individual Draggable/Clickable Horizontal Feather Card in Left/Right Banks */
+    .feather-item {
+      position: relative;
+      width: 100%;
+      max-width: 278px;
+      height: 100%;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease, opacity 0.2s ease;
+    }
+
+    .feather-item:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 6px 12px rgba(146, 64, 14, 0.25));
+      z-index: 30;
+    }
+
+    .feather-item:active {
+      cursor: grabbing;
+      transform: scale(0.97);
+    }
+
+    .feather-item.dragging {
+      opacity: 0.4;
+    }
+
+    .feather-item svg.feather-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 3px 6px rgba(92, 44, 22, 0.22));
+      pointer-events: none;
+    }
+
+    .feather-item-text {
+      position: relative;
+      z-index: 4;
+      width: 78%;
+      margin-left: 8%;
+      text-align: center;
+      font-size: clamp(0.67rem, 0.88vw, 0.78rem);
+      line-height: 1.13;
+      font-weight: 900;
+      color: #FFFDF9;
+      text-shadow:
+        0 1.5px 3px rgba(58, 22, 5, 0.98),
+        0 0 6px rgba(92, 36, 8, 0.9),
+        1px 1px 0 rgba(58, 22, 5, 0.85);
+      pointer-events: none;
+    }
+
+    /* Icon-Only Action Buttons in Header */
+    .icon-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+    }
+
+    .icon-btn:hover {
+      transform: translateY(-2px) scale(1.06);
+    }
+
+    .icon-btn:active {
+      transform: translateY(1px) scale(0.96);
+    }
+
+    /* Responsive Fallback for Narrow Screens */
+    @media (max-width: 840px) {
+      body {
+        height: auto;
+        max-height: none;
+        overflow-y: auto;
+      }
+
+      .workspace-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding-bottom: 2rem;
+      }
+
+      .workspace-grid.completed-mode {
+        grid-template-columns: 1fr;
+      }
+
+      .side-bank {
+        min-height: auto;
+        max-height: none;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+      }
+
+      .feather-slot-placeholder {
+        height: 82px;
+        min-height: 82px;
+      }
+
+      .turkey-stage {
+        height: 470px;
+        min-height: 470px;
+      }
+    }
+
+    /* Confetti Overlay */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Compact Header: ONLY Title + Icon-Only Check, Reset & Download Buttons -->
+  <header class="w-full max-w-6xl mx-auto px-4 pt-2.5 pb-1 flex items-center justify-center gap-5 shrink-0">
+    <h1 class="text-2xl sm:text-4xl font-bold text-amber-950 tracking-tight text-center">
+      Thanksgiving Facts
+    </h1>
+
+    <div class="flex items-center gap-3">
+      <button
+        id="checkBtn"
+        type="button"
+        aria-label="Check"
+        class="icon-btn bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-md shadow-emerald-900/20 border-b-4 border-emerald-900"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-[3.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </button>
+
+      <button
+        id="downloadBtn"
+        type="button"
+        aria-label="Download"
+        class="icon-btn hidden bg-gradient-to-b from-sky-500 to-sky-700 text-white shadow-md shadow-sky-900/20 border-b-4 border-sky-900"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-[2.8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+        </svg>
+      </button>
+
+      <button
+        id="resetBtn"
+        type="button"
+        aria-label="Reset"
+        class="icon-btn bg-gradient-to-b from-amber-200 to-amber-300 text-amber-950 shadow-sm shadow-amber-900/15 border-b-4 border-amber-500"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-[2.8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 3-Column Zero-Scroll Workspace: Left Feathers | Center Turkey | Right Feathers -->
+  <main id="workspaceGrid" class="workspace-grid">
+    <aside id="leftFeatherBank" class="side-bank" aria-label="Left Feathers"></aside>
+
+    <section id="turkeyDropzone" class="turkey-center-col">
+      <div class="turkey-stage" id="turkeyStage">
+        <div class="turkey-body-wrap" id="turkeyBodyWrap">
+          <!-- High-Resolution Inline SVG Turkey Matching Uploaded Art Style -->
+          <svg viewBox="0 0 320 390" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Legs & Yellow Feet -->
+            <g fill="#E59A24">
+              <!-- Left Leg & Foot -->
+              <rect x="116" y="314" width="16" height="44" rx="4" />
+              <path d="M124 348 L76 364 Q71 366 74 371 Q78 375 84 373 L116 362 L96 382 Q92 386 97 389 Q102 391 106 387 L126 366 L142 384 Q146 388 151 384 Q155 380 151 375 L131 352 Z" />
+              <!-- Right Leg & Foot -->
+              <rect x="188" y="314" width="16" height="44" rx="4" />
+              <path d="M196 348 L244 364 Q249 366 246 371 Q242 375 236 373 L204 362 L224 382 Q228 386 223 389 Q218 391 214 387 L194 366 L178 384 Q174 388 169 384 Q165 380 169 375 L189 352 Z" />
+            </g>
+            <!-- Leg Stripes -->
+            <g fill="#F6BE4F">
+              <rect x="116" y="324" width="16" height="4" />
+              <rect x="116" y="335" width="16" height="4" />
+              <rect x="188" y="324" width="16" height="4" />
+              <rect x="188" y="335" width="16" height="4" />
+            </g>
+            <!-- Thighs -->
+            <ellipse cx="124" cy="306" rx="26" ry="22" fill="#632612" />
+            <ellipse cx="196" cy="306" rx="26" ry="22" fill="#632612" />
+            <!-- Left & Right Wings -->
+            <path d="M68 152 C20 165, 10 245, 58 292 C72 304, 82 290, 76 268 C66 232, 66 184, 76 156 Z" fill="#D96518" />
+            <path d="M252 152 C300 165, 310 245, 262 292 C248 304, 238 290, 244 268 C254 232, 254 184, 244 156 Z" fill="#D96518" />
+            <!-- Main Plump Brown Body -->
+            <ellipse cx="160" cy="222" rx="116" ry="104" fill="#823415" />
+            <!-- Scalloped Chest Feathers -->
+            <path d="M84 202 Q98 228 116 208 Q134 234 160 212 Q186 234 204 208 Q222 228 236 202 Q232 232 204 222 Q186 246 160 226 Q134 246 116 222 Q88 232 84 202 Z" fill="#D96518" />
+            <path d="M92 234 Q106 258 124 240 Q140 264 160 244 Q180 264 196 240 Q214 258 228 234 Q224 262 196 254 Q180 276 160 258 Q140 276 124 254 Q96 262 92 234 Z" fill="#D96518" />
+            <!-- Orange Neck & Scalloped Collar -->
+            <path d="M126 92 C126 126, 114 146, 94 164 C84 174, 94 188, 112 182 C120 198, 138 198, 144 184 C152 204, 168 204, 176 184 C182 198, 200 198, 208 182 C226 188, 236 174, 226 164 C206 146, 194 126, 194 92 Z" fill="#E36B19" />
+            <!-- Orange Head -->
+            <ellipse cx="160" cy="64" rx="52" ry="48" fill="#E36B19" />
+            <!-- Big White Eyes & Pupils -->
+            <circle cx="136" cy="60" r="15" fill="#FFFFFF" />
+            <circle cx="184" cy="60" r="15" fill="#FFFFFF" />
+            <ellipse cx="137" cy="60" rx="5" ry="7" fill="#121324" />
+            <ellipse cx="183" cy="60" rx="5" ry="7" fill="#121324" />
+            <!-- Red Wattle (Snood) -->
+            <path d="M166 72 C188 72, 196 92, 192 114 C189 128, 204 136, 204 148 C204 160, 186 164, 174 156 C162 148, 162 128, 166 112 C170 96, 166 84, 162 78 Z" fill="#D94848" />
+            <path d="M165 76 C174 88, 172 106, 168 122 C164 138, 168 152, 180 158 C166 158, 158 142, 162 122 C166 102, 164 88, 160 78 Z" fill="#B83535" />
+            <!-- Yellow Diamond Beak & Nostrils -->
+            <path d="M160 66 Q174 68 178 80 Q170 94 160 106 Q150 94 142 80 Q146 68 160 66 Z" fill="#F9CD52" />
+            <ellipse cx="154" cy="78" rx="2.2" ry="3.2" fill="#121324" />
+            <ellipse cx="166" cy="78" rx="2.2" ry="3.2" fill="#121324" />
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <aside id="rightFeatherBank" class="side-bank" aria-label="Right Feathers"></aside>
+  </main>
+
+  <script>
+    const STATEMENTS = [
+      // 8 TRUE: Thanksgiving Facts
+      { id: 1, text: 'Americans celebrate Thanksgiving in November.', isTrue: true },
+      { id: 2, text: 'People eat turkey on Thanksgiving.', isTrue: true },
+      { id: 3, text: 'Families get together on Thanksgiving.', isTrue: true },
+      { id: 4, text: "Americans watch the Macy's Thanksgiving Day Parade.", isTrue: true },
+      { id: 5, text: 'People often eat pumpkin pie on Thanksgiving.', isTrue: true },
+      { id: 6, text: 'Thanksgiving is a holiday about saying thank you.', isTrue: true },
+      { id: 7, text: 'Canadians celebrate Thanksgiving in October.', isTrue: true },
+      { id: 13, text: 'Americans like to watch football on Thanksgiving day.', isTrue: true },
+      // 5 LIES
+      { id: 8, text: 'Canadians celebrate Thanksgiving in December.', isTrue: false },
+      { id: 9, text: 'Thanksgiving is a holiday about giving gifts.', isTrue: false },
+      { id: 10, text: 'People eat sushi as the traditional Thanksgiving food.', isTrue: false },
+      { id: 11, text: 'Thanksgiving is celebrated every Monday in November.', isTrue: false },
+      { id: 12, text: 'People traditionally celebrate Thanksgiving by lighting fireworks.', isTrue: false }
+    ];
+
+    // 8 symmetrical radial angles fanning behind the turkey so all 8 checkmarks and outer labels never overlap
+    const SLOT_ANGLES = [-76, -54, -32, -11, 11, 32, 54, 76];
+    const TRUE_FACTS_COUNT = STATEMENTS.filter((s) => s.isTrue).length;
+
+    let slots = Array(8).fill(null);
+    let leftBankSlots = Array(7).fill(null);
+    let rightBankSlots = Array(6).fill(null);
+    let activePointerDrag = null;
+    let audioCtx = null;
+
+    const workspaceGrid = document.getElementById('workspaceGrid');
+    const leftFeatherBank = document.getElementById('leftFeatherBank');
+    const rightFeatherBank = document.getElementById('rightFeatherBank');
+    const turkeyStage = document.getElementById('turkeyStage');
+    const turkeyDropzone = document.getElementById('turkeyDropzone');
+    const checkBtn = document.getElementById('checkBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // Inline SVG Templates matching uploaded feather.png art style (golden-orange outer plume, terracotta inner plume, dark brown quill)
+    function getHorizontalFeatherSVG() {
+      return `
+        <svg class="feather-bg" viewBox="0 0 280 96" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Outer Golden-Orange Plume -->
+          <path d="M12 46 L48 16 C118 -4, 245 -2, 272 44 C282 62, 248 88, 172 90 C105 92, 46 84, 18 76 Z" fill="#F9AD12" />
+          <!-- Inner Terracotta-Brown Plume -->
+          <path d="M12 46 L48 16 C108 6, 206 10, 224 44 C236 66, 198 84, 134 86 C82 88, 42 82, 18 76 Z" fill="#C95E2B" />
+          <!-- Dark Brown Central Quill -->
+          <path d="M14 58 L142 46 L142 50 L17 69 Z" fill="#5C280C" />
+        </svg>
+      `;
+    }
+
+    function getVerticalTailFeatherSVG() {
+      return `
+        <svg class="feather-art" viewBox="0 0 110 250" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Outer Golden-Orange Plume -->
+          <path d="M44 244 L22 192 C4 125, 4 18, 55 6 C96 -2, 108 42, 104 114 C100 175, 86 218, 72 244 Z" fill="#F9AD12" />
+          <!-- Inner Terracotta-Brown Plume -->
+          <path d="M44 244 L22 192 C10 132, 14 48, 55 38 C86 30, 96 66, 92 126 C88 180, 78 218, 72 244 Z" fill="#C95E2B" />
+          <!-- Dark Brown Central Quill -->
+          <path d="M54 244 L54 112 L59 112 L63 244 Z" fill="#5C280C" />
+        </svg>
+      `;
+    }
+
+    function playTone(type) {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'place') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(390, now);
+          osc.frequency.exponentialRampToValueAtTime(620, now + 0.11);
+          gain.gain.setValueAtTime(0.14, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+          osc.start(now);
+          osc.stop(now + 0.14);
+        } else if (type === 'remove') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(480, now);
+          osc.frequency.exponentialRampToValueAtTime(290, now + 0.11);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+          osc.start(now);
+          osc.stop(now + 0.14);
+        } else if (type === 'error') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(210, now);
+          osc.frequency.linearRampToValueAtTime(150, now + 0.25);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.27);
+          osc.start(now);
+          osc.stop(now + 0.28);
+        } else if (type === 'win') {
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = 'triangle';
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.frequency.setValueAtTime(freq, now + idx * 0.1);
+            g.gain.setValueAtTime(0.16, now + idx * 0.1);
+            g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.34);
+            o.start(now + idx * 0.1);
+            o.stop(now + idx * 0.1 + 0.35);
+          });
+        }
+      } catch (e) {}
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function getStatementById(id) {
+      return STATEMENTS.find((s) => s.id === id);
+    }
+
+    function initGame() {
+      slots = Array(8).fill(null);
+      const shuffled = shuffleArray(STATEMENTS.map((s) => s.id));
+      leftBankSlots = shuffled.slice(0, 7);
+      rightBankSlots = shuffled.slice(7, 13);
+      workspaceGrid.classList.remove('completed-mode');
+      turkeyStage.classList.remove('completed-showcase');
+      checkBtn.classList.remove('hidden');
+      downloadBtn.classList.add('hidden');
+      renderAll();
+    }
+
+    function returnFeatherToBank(statementId) {
+      if (leftBankSlots.includes(statementId) || rightBankSlots.includes(statementId)) return;
+      const leftEmpty = leftBankSlots.findIndex((item) => item === null);
+      if (leftEmpty !== -1) {
+        leftBankSlots[leftEmpty] = statementId;
+        return;
+      }
+      const rightEmpty = rightBankSlots.findIndex((item) => item === null);
+      if (rightEmpty !== -1) {
+        rightBankSlots[rightEmpty] = statementId;
+      }
+    }
+
+    function removeFeatherFromBanks(statementId) {
+      let removed = false;
+      const lIdx = leftBankSlots.indexOf(statementId);
+      if (lIdx !== -1) {
+        leftBankSlots[lIdx] = null;
+        removed = true;
+      }
+      const rIdx = rightBankSlots.indexOf(statementId);
+      if (rIdx !== -1) {
+        rightBankSlots[rIdx] = null;
+        removed = true;
+      }
+      return removed;
+    }
+
+    function renderAll() {
+      renderTurkeySlots();
+      renderSideBanks();
+    }
+
+    function renderTurkeySlots() {
+      turkeyStage.querySelectorAll('.tail-slot').forEach((el) => el.remove());
+
+      SLOT_ANGLES.forEach((angle, index) => {
+        const slotData = slots[index];
+        const slotEl = document.createElement('div');
+        slotEl.className = 'tail-slot';
+        slotEl.dataset.slotIndex = index;
+        slotEl.style.setProperty('--slot-angle', `${angle}deg`);
+        slotEl.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+        slotEl.style.zIndex = 14 - Math.round(Math.abs(index - 3.5));
+
+        if (slotData) {
+          const stmt = getStatementById(slotData.statementId);
+          slotEl.classList.add('occupied');
+          if (slotData.locked) {
+            slotEl.classList.add('locked');
+          }
+
+          slotEl.innerHTML = `
+            <div class="placed-feather-wrap">
+              ${getVerticalTailFeatherSVG()}
+              ${
+                slotData.locked
+                  ? `<span class="verified-icon" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 stroke-[3.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>`
+                  : ''
+              }
+              <div class="placed-feather-text">${stmt.text}</div>
+            </div>
+          `;
+
+          slotEl.addEventListener('click', () => {
+            if (slotData.locked) return;
+            slots[index] = null;
+            returnFeatherToBank(slotData.statementId);
+            playTone('remove');
+            renderAll();
+          });
+        }
+
+        turkeyStage.appendChild(slotEl);
+      });
+    }
+
+    function clearSlotHighlights() {
+      turkeyStage.querySelectorAll('.tail-slot.drag-over').forEach((el) => el.classList.remove('drag-over'));
+    }
+
+    function findHoveredTailSlot(clientX, clientY) {
+      const slotElements = Array.from(turkeyStage.querySelectorAll('.tail-slot:not(.occupied)'));
+      for (const el of slotElements) {
+        const rect = el.getBoundingClientRect();
+        if (
+          clientX >= rect.left - 10 &&
+          clientX <= rect.right + 10 &&
+          clientY >= rect.top - 10 &&
+          clientY <= rect.bottom + 10
+        ) {
+          return el;
+        }
+      }
+      return null;
+    }
+
+    function isOverTurkeyArea(clientX, clientY) {
+      const rect = turkeyStage.getBoundingClientRect();
+      return (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      );
+    }
+
+    function createFeatherElement(id) {
+      const stmt = getStatementById(id);
+      const item = document.createElement('div');
+      item.className = 'feather-item';
+      item.dataset.featherId = id;
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+
+      item.innerHTML = `
+        ${getHorizontalFeatherSVG()}
+        <span class="feather-item-text">${stmt.text}</span>
+      `;
+
+      // Unified Pointer Events for Mouse, Touch Screens, Tablets, and Smartboards
+      item.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        e.preventDefault();
+
+        const rect = item.getBoundingClientRect();
+        activePointerDrag = {
+          id,
+          pointerId: e.pointerId,
+          startX: e.clientX,
+          startY: e.clientY,
+          width: rect.width,
+          height: rect.height,
+          isDragging: false,
+          sourceEl: item,
+          ghostEl: null
+        };
+
+        try {
+          item.setPointerCapture(e.pointerId);
+        } catch (err) {}
+      });
+
+      item.addEventListener('pointermove', (e) => {
+        if (!activePointerDrag || activePointerDrag.pointerId !== e.pointerId) return;
+
+        const dx = e.clientX - activePointerDrag.startX;
+        const dy = e.clientY - activePointerDrag.startY;
+
+        if (!activePointerDrag.isDragging && Math.hypot(dx, dy) > 8) {
+          activePointerDrag.isDragging = true;
+          item.classList.add('dragging');
+
+          const ghost = document.createElement('div');
+          ghost.className = 'feather-drag-ghost';
+          ghost.style.width = `${activePointerDrag.width}px`;
+          ghost.style.height = `${activePointerDrag.height}px`;
+          ghost.innerHTML = `
+            ${getHorizontalFeatherSVG()}
+            <span class="feather-item-text">${stmt.text}</span>
+          `;
+          document.body.appendChild(ghost);
+          activePointerDrag.ghostEl = ghost;
+        }
+
+        if (activePointerDrag.isDragging && activePointerDrag.ghostEl) {
+          activePointerDrag.ghostEl.style.left = `${e.clientX}px`;
+          activePointerDrag.ghostEl.style.top = `${e.clientY}px`;
+
+          clearSlotHighlights();
+          const hoveredSlot = findHoveredTailSlot(e.clientX, e.clientY);
+          if (hoveredSlot) {
+            hoveredSlot.classList.add('drag-over');
+          }
+        }
+      });
+
+      const finishPointerInteraction = (e) => {
+        if (!activePointerDrag || activePointerDrag.pointerId !== e.pointerId) return;
+
+        const dragState = activePointerDrag;
+        activePointerDrag = null;
+
+        try {
+          item.releasePointerCapture(e.pointerId);
+        } catch (err) {}
+
+        item.classList.remove('dragging');
+        clearSlotHighlights();
+
+        if (dragState.ghostEl) {
+          dragState.ghostEl.remove();
+        }
+
+        if (!dragState.isDragging) {
+          // Tap / Click places feather into the next open turkey slot
+          placeFeatherNextAvailable(dragState.id);
+          return;
+        }
+
+        // Dropped after dragging
+        const hoveredSlot = findHoveredTailSlot(e.clientX, e.clientY);
+        if (hoveredSlot) {
+          const slotIndex = Number(hoveredSlot.dataset.slotIndex);
+          placeFeatherInSpecificSlot(dragState.id, slotIndex);
+        } else if (isOverTurkeyArea(e.clientX, e.clientY)) {
+          placeFeatherNextAvailable(dragState.id);
+        }
+      };
+
+      item.addEventListener('pointerup', finishPointerInteraction);
+      item.addEventListener('pointercancel', finishPointerInteraction);
+
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          placeFeatherNextAvailable(id);
+        }
+      });
+
+      return item;
+    }
+
+    function renderSideBanks() {
+      leftFeatherBank.innerHTML = '';
+      rightFeatherBank.innerHTML = '';
+
+      leftBankSlots.forEach((id) => {
+        const holder = document.createElement('div');
+        holder.className = 'feather-slot-placeholder';
+        if (id) {
+          holder.appendChild(createFeatherElement(id));
+        }
+        leftFeatherBank.appendChild(holder);
+      });
+
+      rightBankSlots.forEach((id) => {
+        const holder = document.createElement('div');
+        holder.className = 'feather-slot-placeholder';
+        if (id) {
+          holder.appendChild(createFeatherElement(id));
+        }
+        rightFeatherBank.appendChild(holder);
+      });
+    }
+
+    function placeFeatherInSpecificSlot(statementId, targetIndex) {
+      if (!leftBankSlots.includes(statementId) && !rightBankSlots.includes(statementId)) return;
+
+      let chosenIndex = targetIndex;
+      if (slots[chosenIndex] !== null) {
+        chosenIndex = slots.findIndex((s) => s === null);
+      }
+
+      if (chosenIndex === -1) {
+        playTone('error');
+        return;
+      }
+
+      removeFeatherFromBanks(statementId);
+      slots[chosenIndex] = { statementId, locked: false };
+      playTone('place');
+      renderAll();
+    }
+
+    function placeFeatherNextAvailable(statementId) {
+      const preferredOrder = [3, 4, 2, 5, 1, 6, 0, 7];
+      const openIdx = preferredOrder.find((idx) => slots[idx] === null);
+
+      if (openIdx === undefined) {
+        playTone('error');
+        return;
+      }
+
+      placeFeatherInSpecificSlot(statementId, openIdx);
+    }
+
+    checkBtn.addEventListener('click', () => {
+      const placedIndices = slots
+        .map((s, idx) => (s ? idx : -1))
+        .filter((idx) => idx !== -1);
+
+      if (placedIndices.length === 0) {
+        playTone('error');
+        return;
+      }
+
+      const wrongIndices = [];
+
+      placedIndices.forEach((idx) => {
+        const stmt = getStatementById(slots[idx].statementId);
+        if (stmt.isTrue) {
+          slots[idx].locked = true;
+        } else {
+          wrongIndices.push(idx);
+        }
+      });
+
+      renderAll();
+
+      if (wrongIndices.length > 0) {
+        playTone('error');
+        wrongIndices.forEach((idx) => {
+          const slotEl = turkeyStage.querySelector(`.tail-slot[data-slot-index="${idx}"]`);
+          if (slotEl) {
+            slotEl.classList.add('wrong-shake');
+          }
+        });
+
+        setTimeout(() => {
+          wrongIndices.forEach((idx) => {
+            if (slots[idx]) {
+              returnFeatherToBank(slots[idx].statementId);
+              slots[idx] = null;
+            }
+          });
+          renderAll();
+        }, 580);
+        return;
+      }
+
+      const totalTrueLocked = slots.filter((s) => s && s.locked).length;
+
+      if (totalTrueLocked === TRUE_FACTS_COUNT) {
+        playTone('win');
+        launchConfetti();
+        workspaceGrid.classList.add('completed-mode');
+        checkBtn.classList.add('hidden');
+        downloadBtn.classList.remove('hidden');
+        turkeyStage.classList.add('completed-showcase');
+      } else {
+        playTone('place');
+      }
+    });
+
+    // Save/Download Picture of the Completed Turkey with All 8 Readable Facts
+    downloadBtn.addEventListener('click', () => {
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = 1360;
+      exportCanvas.height = 980;
+      const ctx = exportCanvas.getContext('2d');
+
+      // Seamless Parchment Background
+      ctx.fillStyle = '#FAF3E8';
+      ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+      // Title
+      ctx.fillStyle = '#451A03';
+      ctx.font = 'bold 54px Fredoka, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Thanksgiving Facts', 680, 74);
+
+      const cx = 680;
+      const cy = 690;
+
+      // Draw 8 Fanned Feathers + Checkmarks + Outer Curved Statements
+      SLOT_ANGLES.forEach((deg, idx) => {
+        const slotData = slots[idx];
+        if (!slotData) return;
+        const stmt = getStatementById(slotData.statementId);
+        const rad = (deg * Math.PI) / 180;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rad);
+
+        // Feather Outer Golden Plume
+        ctx.fillStyle = '#F9AD12';
+        ctx.beginPath();
+        ctx.moveTo(-16, -40);
+        ctx.quadraticCurveTo(-62, -240, 0, -355);
+        ctx.quadraticCurveTo(62, -240, 16, -40);
+        ctx.closePath();
+        ctx.fill();
+
+        // Feather Inner Terracotta Plume
+        ctx.fillStyle = '#C95E2B';
+        ctx.beginPath();
+        ctx.moveTo(-13, -40);
+        ctx.quadraticCurveTo(-48, -210, 0, -312);
+        ctx.quadraticCurveTo(48, -210, 13, -40);
+        ctx.closePath();
+        ctx.fill();
+
+        // Central Quill
+        ctx.fillStyle = '#5C280C';
+        ctx.fillRect(-3, -210, 6, 170);
+
+        // Green Checkmark Badge Beyond Tip
+        ctx.fillStyle = '#16A34A';
+        ctx.beginPath();
+        ctx.arc(0, -382, 15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#FAF3E8';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(-6, -382);
+        ctx.lineTo(-1, -376);
+        ctx.lineTo(7, -388);
+        ctx.stroke();
+
+        // Statement Text Radially Outward Beyond Checkmark
+        ctx.fillStyle = '#4A200C';
+        ctx.font = '800 16px Nunito, sans-serif';
+        ctx.textAlign = 'center';
+        const words = stmt.text.split(' ');
+        const lines = [];
+        let line = '';
+        words.forEach((w) => {
+          const test = line ? `${line} ${w}` : w;
+          if (ctx.measureText(test).width > 152 && line) {
+            lines.push(line);
+            line = w;
+          } else {
+            line = test;
+          }
+        });
+        if (line) lines.push(line);
+
+        lines.reverse().forEach((ln, lIdx) => {
+          ctx.fillText(ln, 0, -412 - lIdx * 19);
+        });
+
+        ctx.restore();
+      });
+
+      // Draw Turkey Body in Front
+      const turkeySvgEl = document.querySelector('#turkeyBodyWrap svg');
+      const svgXml = new XMLSerializer().serializeToString(turkeySvgEl);
+      const svgBlob = new Blob([svgXml], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, cx - 135, cy - 165, 270, 329);
+        URL.revokeObjectURL(url);
+        const link = document.createElement('a');
+        link.download = 'thanksgiving-facts-turkey.png';
+        link.href = exportCanvas.toDataURL('image/png');
+        link.click();
+      };
+      img.src = url;
+    });
+
+    resetBtn.addEventListener('click', () => {
+      playTone('remove');
+      initGame();
+    });
+
+    function launchConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ['#F59E0B', '#D95D24', '#16A34A', '#DC2626', '#FBBF24', '#7C2D12'];
+      const particles = Array.from({ length: 130 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        w: 8 + Math.random() * 8,
+        h: 6 + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        speedY: 2.5 + Math.random() * 4,
+        speedX: (Math.random() - 0.5) * 3,
+        rot: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 8
+      }));
+
+      let frames = 0;
+      function animateConfetti() {
+        frames++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p) => {
+          p.y += p.speedY;
+          p.x += p.speedX;
+          p.rot += p.rotSpeed;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+
+        if (frames < 210) {
+          requestAnimationFrame(animateConfetti);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      animateConfetti();
+    }
+
+    window.addEventListener('DOMContentLoaded', initGame);
+  </script>
+</body>
+</html>
